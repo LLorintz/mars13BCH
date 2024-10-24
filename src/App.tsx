@@ -2,67 +2,52 @@ import { FormEvent, useState, useEffect } from 'react'
 import './app.css'
 import PlayerName from './components/PlayerName/PlayerName'
 import Resource from './components/Resource/Resource'
+import { resourceProps } from './components/Resource/Resource'
 function App() {
-  const loadResource=(resource:string)=>{
-    const savedMegacredit = localStorage.getItem(resource);
-    return savedMegacredit ? Number(savedMegacredit) : 0;
-  }
 
-const [Megacredit, setMegacredit] = useState(loadResource("megacredit"))
-const [MegacreditProduction, setMegacreditProduction] = useState(loadResource("mproduction"))
 
-const [Steel, setSteel] = useState(loadResource('steel'))
-const [SteelProduction, setSteelProduction] = useState(loadResource("sproduction"))
-//
-//Titan
-const [Titan, setTitan] = useState(loadResource('titan'))
-const [TitanProduction, setTitanProduction] = useState(loadResource("sTitan"))
-//Plants
-//Energy
-//Heat
+  const [resources, setResource] = useState<resourceProps[]>([
+    {name:'Megacredit', amount:0, production:0},
+    {name:'Steel', amount:0, production:0},
+    {name:'Heat', amount:0, production:0},
+    {name:'Plants', amount:0, production:0},
+    {name:'Titan', amount:0, production:0},
+    {name:'Gold', amount:0, production:0},
+  ])
 
-const handleIncrement=(increment:number, resource:number, setResource:(vlaue:number)=>void)=>{
-  setResource(resource+increment)
+const handleIncrement=(increment:number, index:number, field:'amount'|'production')=>{
+  setResource(prevResources=>{
+    const updateResource = [...prevResources] //reources tömb aktuális állapotát kapja az updateResource
+    updateResource[index]={
+      ...updateResource[index],
+      [field]:updateResource[index][field]+increment    
+    }
+    return updateResource
+  })
 }
-
-useEffect(()=>{
-  localStorage.setItem("megacredit", Megacredit.toString());
-  localStorage.setItem("steel", Steel.toString());
-  localStorage.setItem("mproduction", MegacreditProduction.toString());
-  localStorage.setItem("sproduction", SteelProduction.toString());
-  localStorage.setItem("titan", Titan.toString());
-  localStorage.setItem("tproduction", TitanProduction.toString());
-},[Megacredit, Steel, SteelProduction, MegacreditProduction,Titan, TitanProduction])
 
 const handlSubmit2=(e:FormEvent)=>{
     e.preventDefault()
-    setMegacredit(Megacredit+MegacreditProduction)
-    setSteel(Steel+SteelProduction)
+    setResource(prevResources=>(
+      prevResources.map(resource=>(
+        {...resource, amount:resource.amount+resource.production}
+      ))
+    ))
+   
   }
   return (
     <form onSubmit={handlSubmit2} className="container">
         <PlayerName></PlayerName>
-        <Resource 
-        name='Megacredit' 
-        amount={Megacredit} 
-        onchange={(increment:number)=>handleIncrement(increment, Megacredit, setMegacredit)}
-        production={MegacreditProduction}
-        onchangeProductivity={(increment:number)=>handleIncrement(increment, MegacreditProduction, setMegacreditProduction)}
-        ></Resource>
-        <Resource 
-        name='Steel' 
-        amount={Steel} 
-        onchange={(increment:number)=>handleIncrement(increment, Steel, setSteel)}
-        production={SteelProduction}
-        onchangeProductivity={(increment:number)=>handleIncrement(increment, SteelProduction, setSteelProduction)}
-        ></Resource>
-         <Resource 
-        name='Titan' 
-        amount={Titan} 
-        onchange={(increment:number)=>handleIncrement(increment, Titan, setTitan)}
-        production={TitanProduction}
-        onchangeProductivity={(increment:number)=>handleIncrement(increment, TitanProduction, setTitanProduction)}
-        ></Resource>
+        {resources.map((resource,index)=>(
+                  <Resource 
+                  name={resource.name} 
+                  amount={resource.amount} 
+                  onchange={(increment:number)=>handleIncrement(increment, index, 'amount')}
+                  production={resource.production}
+                  onchangeProductivity={(increment:number)=>handleIncrement(increment, index, 'production')}
+                  ></Resource>          
+        ))}
+    
        <button type='submit' className='NextRound'>Next Round</button>
     </form>
   )
